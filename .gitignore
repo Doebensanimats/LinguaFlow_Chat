@@ -1,0 +1,30 @@
+cat > .gitignore << 'EOF'
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+override.tf
+
+# Lambda build artifacts
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+.env
+.venv/
+venv/
+
+# Test outputs
+response.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+EOF
