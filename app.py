@@ -5,10 +5,13 @@ import json
 import uuid
 import time
 import pandas as pd
-import io
+import os
 from datetime import datetime
+from dotenv import load_dotenv
 
-# ── Page config ──────────────────────────────────────────────────────────────
+load_dotenv()
+
+# ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="LinguaFlow – AI Translator",
     page_icon="🌍",
@@ -21,7 +24,6 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap');
 
-/* ── Root variables ── */
 :root {
     --primary:   #FF6B35;
     --secondary: #004E89;
@@ -35,20 +37,18 @@ st.markdown("""
     --border:    rgba(255,107,53,0.25);
 }
 
-/* ── Global ── */
 html, body, [class*="css"] {
     font-family: 'DM Sans', sans-serif;
     background-color: var(--bg);
     color: var(--text);
 }
-
 .main { background: var(--bg); }
+
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #0D0D0D 0%, #1A1A2E 100%);
     border-right: 1px solid var(--border);
 }
 
-/* ── Hero banner ── */
 .hero {
     background: linear-gradient(135deg, #FF6B35 0%, #004E89 60%, #0D0D0D 100%);
     border-radius: 20px;
@@ -68,46 +68,35 @@ section[data-testid="stSidebar"] {
     color: #fff; margin: 0 0 0.3rem;
     text-shadow: 0 2px 20px rgba(0,0,0,0.4);
 }
-.hero p { color: rgba(255,255,255,0.8); font-size: 1.05rem; margin: 0; }
+.hero p { color: rgba(255,255,255,0.8); font-size: 16px; margin: 0; }
 
-/* ── Cards ── */
-.card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-}
 .card-title {
     font-family: 'Syne', sans-serif;
     font-size: 1.1rem; font-weight: 700;
     color: var(--primary); margin-bottom: 0.8rem;
 }
 
-/* ── Result box ── */
 .result-box {
     background: linear-gradient(135deg, rgba(6,214,160,0.08), rgba(0,78,137,0.15));
     border: 1px solid rgba(6,214,160,0.35);
     border-radius: 12px;
     padding: 1.2rem 1.5rem;
-    font-size: 1.25rem;
+    font-size: 20px;
     color: #fff;
     margin-top: 0.5rem;
     min-height: 60px;
 }
 
-/* ── History item ── */
 .hist-item {
     background: var(--surface2);
     border-left: 3px solid var(--primary);
     border-radius: 8px;
     padding: 0.75rem 1rem;
     margin-bottom: 0.6rem;
-    font-size: 0.9rem;
+    font-size: 14px;
 }
-.hist-meta { color: var(--muted); font-size: 0.78rem; margin-bottom: 0.2rem; }
+.hist-meta { color: var(--muted); font-size: 12px; margin-bottom: 0.2rem; }
 
-/* ── Badge ── */
 .lang-badge {
     display: inline-block;
     background: rgba(255,107,53,0.15);
@@ -115,57 +104,53 @@ section[data-testid="stSidebar"] {
     color: var(--primary);
     border-radius: 20px;
     padding: 2px 12px;
-    font-size: 0.8rem; font-weight: 500;
+    font-size: 13px; font-weight: 500;
 }
 
-/* ── Streamlit widget overrides ── */
 .stTextArea textarea {
-    background: #111827 !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 10px !important;
-    color: var(--text) !important;
-    font-family: 'DM Sans', sans-serif !important;
-    font-size: 1rem !important;
+    background: #111827;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 16px;
 }
 .stSelectbox > div > div {
-    background: #111827 !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 10px !important;
-    color: var(--text) !important;
+    background: #111827;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
 }
 .stButton > button {
-    background: linear-gradient(135deg, var(--primary), #e8541f) !important;
-    color: #fff !important;
-    border: none !important;
-    border-radius: 10px !important;
-    font-family: 'Syne', sans-serif !important;
-    font-weight: 700 !important;
-    font-size: 1rem !important;
-    padding: 0.6rem 2rem !important;
-    transition: transform 0.15s, box-shadow 0.15s !important;
-    box-shadow: 0 4px 20px rgba(255,107,53,0.3) !important;
+    background: linear-gradient(135deg, #FF6B35, #e8541f);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 0.6rem 2rem;
+    box-shadow: 0 4px 20px rgba(255,107,53,0.3);
+    transition: transform 0.15s;
 }
-.stButton > button:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 8px 30px rgba(255,107,53,0.5) !important;
+.stButton > button:hover { transform: translateY(-2px); }
+div[data-testid="stMetricValue"] {
+    color: var(--primary);
+    font-family: 'Syne', sans-serif;
 }
-.stFileUploader {
-    background: #111827 !important;
-    border: 2px dashed var(--border) !important;
-    border-radius: 12px !important;
+.stTabs [data-baseweb="tab"] { font-family: 'Syne', sans-serif; font-weight: 700; }
+.stTabs [aria-selected="true"] {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
 }
-div[data-testid="stMetricValue"] { color: var(--primary) !important; font-family: 'Syne', sans-serif !important; }
-.stTabs [data-baseweb="tab"] { font-family: 'Syne', sans-serif !important; font-weight: 700 !important; }
-.stTabs [aria-selected="true"] { color: var(--primary) !important; border-bottom-color: var(--primary) !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Config (edit these) ───────────────────────────────────────────────────────
-API_URL       = "https://pim404p1j5.execute-api.us-east-1.amazonaws.com/prod/translate"
-SQS_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/115313776877/translation-batch-queue"
-AWS_REGION    = "us-east-1"
+# ── Config ────────────────────────────────────────────────────────────────────
+API_URL       = os.environ.get("API_URL", "")
+SQS_QUEUE_URL = os.environ.get("SQS_QUEUE_URL", "")
+AWS_REGION    = os.environ.get("AWS_REGION", "us-east-1")
 
-# ── Supported languages ───────────────────────────────────────────────────────
+# ── Languages ─────────────────────────────────────────────────────────────────
 LANGUAGES = {
     "English": "en", "Spanish": "es", "French": "fr", "German": "de",
     "Italian": "it", "Portuguese": "pt", "Dutch": "nl", "Russian": "ru",
@@ -182,7 +167,6 @@ if "history" not in st.session_state:
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def translate_text(text, source_lang, target_lang):
-    """Call API Gateway → Lambda → AWS Translate."""
     payload = {"text": text, "source_lang": source_lang, "target_lang": target_lang}
     try:
         r = requests.post(API_URL, json=payload, timeout=15)
@@ -193,8 +177,7 @@ def translate_text(text, source_lang, target_lang):
     except Exception as e:
         return None, str(e)
 
-def send_to_sqs(messages: list):
-    """Send a batch of translation jobs to SQS."""
+def send_to_sqs(messages):
     sqs = boto3.client("sqs", region_name=AWS_REGION)
     entries = []
     for i, msg in enumerate(messages):
@@ -204,7 +187,6 @@ def send_to_sqs(messages: list):
             "MessageGroupId": "batch",
             "MessageDeduplicationId": str(uuid.uuid4()),
         })
-    # SQS SendMessageBatch max 10 per call
     for chunk in [entries[i:i+10] for i in range(0, len(entries), 10)]:
         sqs.send_message_batch(QueueUrl=SQS_QUEUE_URL, Entries=chunk)
 
@@ -222,19 +204,19 @@ with st.sidebar:
     st.markdown("""
     <div style='text-align:center; padding: 1rem 0 1.5rem;'>
         <div style='font-family:Syne,sans-serif; font-size:1.6rem; font-weight:800; color:#FF6B35;'>🌐 LinguaFlow</div>
-        <div style='color:#8B8FA8; font-size:0.85rem;'>Powered by AWS Translate</div>
+        <div style='color:#8B8FA8; font-size:13px;'>Powered by AWS Translate</div>
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown("### 🌍 Language Pair")
     src_name = st.selectbox("Source language", list(LANGUAGES.keys()), index=0)
     tgt_name = st.selectbox("Target language", list(LANGUAGES.keys()), index=1)
-    src_code  = LANGUAGES[src_name]
-    tgt_code  = LANGUAGES[tgt_name]
+    src_code = LANGUAGES[src_name]
+    tgt_code = LANGUAGES[tgt_name]
 
     st.markdown("---")
     st.markdown(f"""
-    <div style='color:#8B8FA8; font-size:0.82rem; line-height:1.6;'>
+    <div style='color:#8B8FA8; font-size:13px; line-height:1.6;'>
     <b style='color:#FF6B35;'>Selected pair</b><br>
     <span class='lang-badge'>{src_name}</span> → <span class='lang-badge'>{tgt_name}</span>
     </div>
@@ -242,7 +224,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown(f"""
-    <div style='color:#8B8FA8; font-size:0.78rem;'>
+    <div style='color:#8B8FA8; font-size:13px;'>
     📊 <b>History:</b> {len(st.session_state.history)} translations<br>
     🔗 <b>Region:</b> {AWS_REGION}
     </div>
@@ -256,11 +238,10 @@ with st.sidebar:
 st.markdown("""
 <div class='hero'>
     <h1>LinguaFlow Translator</h1>
-    <p>Instant AI-powered translations via AWS Translate · Single text & batch file support</p>
+    <p>Instant AI-powered translations · Single text, batch files and live audio conversation</p>
 </div>
 """, unsafe_allow_html=True)
 
-# Stats row
 c1, c2, c3 = st.columns(3)
 c1.metric("Translations Today", len(st.session_state.history))
 c2.metric("Source Language", src_name)
@@ -268,10 +249,9 @@ c3.metric("Target Language", tgt_name)
 
 st.markdown("---")
 
-# ── Tabs ──────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3 = st.tabs(["✏️  Single Translation", "📂  Batch Upload", "🕘  History"])
 
-# ─── TAB 1: Single translation ────────────────────────────────────────────────
+# ─── TAB 1 ───────────────────────────────────────────────────────────────────
 with tab1:
     col_l, col_r = st.columns(2, gap="large")
 
@@ -279,12 +259,10 @@ with tab1:
         st.markdown("<div class='card-title'>📝 Input Text</div>", unsafe_allow_html=True)
         input_text = st.text_area(
             label="input", label_visibility="collapsed",
-            placeholder=f"Type or paste text in {src_name}…",
+            placeholder=f"Type or paste text in {src_name}...",
             height=200, key="single_input"
         )
-        char_count = len(input_text)
-        st.caption(f"{char_count} characters")
-
+        st.caption(f"{len(input_text)} characters")
         translate_btn = st.button("🚀 Translate", use_container_width=True)
 
     with col_r:
@@ -295,7 +273,7 @@ with tab1:
             elif src_code == tgt_code:
                 st.warning("Source and target languages must be different.")
             else:
-                with st.spinner("Translating…"):
+                with st.spinner("Translating..."):
                     result, error = translate_text(input_text.strip(), src_code, tgt_code)
                 if error:
                     st.error(f"❌ {error}")
@@ -303,24 +281,18 @@ with tab1:
                     st.markdown(f"<div class='result-box'>{result}</div>", unsafe_allow_html=True)
                     add_to_history(input_text.strip(), result, src_name, tgt_name)
                     st.success("✅ Translation complete!")
-
-                    # Download single result
                     dl = f"Original ({src_name}):\n{input_text.strip()}\n\nTranslation ({tgt_name}):\n{result}"
                     st.download_button(
                         "⬇️ Download Result", data=dl,
                         file_name="translation.txt", mime="text/plain"
                     )
         else:
-            st.markdown("<div class='result-box' style='color:#8B8FA8; font-style:italic;'>Translation will appear here…</div>", unsafe_allow_html=True)
+            st.markdown("<div class='result-box' style='color:#8B8FA8; font-style:italic;'>Translation will appear here...</div>", unsafe_allow_html=True)
 
-# ─── TAB 2: Batch upload ──────────────────────────────────────────────────────
+# ─── TAB 2 ───────────────────────────────────────────────────────────────────
 with tab2:
     st.markdown("<div class='card-title'>📂 Upload a CSV or TXT file for batch translation</div>", unsafe_allow_html=True)
-
-    st.info("""
-    **CSV format:** must have a column named `text` (other columns are preserved).  
-    **TXT format:** one sentence / paragraph per line.
-    """)
+    st.info("**CSV format:** must have a column named `text`. **TXT format:** one sentence per line.")
 
     uploaded = st.file_uploader("Choose file", type=["csv", "txt"], key="batch_file")
 
@@ -339,7 +311,7 @@ with tab2:
                 with col_a:
                     mode = st.radio("Processing mode", ["Direct API (small batches)", "SQS Queue (large batches)"])
                 with col_b:
-                    st.markdown(f"<br><span style='color:#8B8FA8;'>Rows to translate: <b style='color:#FF6B35;'>{len(df)}</b></span>", unsafe_allow_html=True)
+                    st.markdown(f"<br><span style='color:#8B8FA8;'>Rows: <b style='color:#FF6B35;'>{len(df)}</b></span>", unsafe_allow_html=True)
 
                 if st.button("⚡ Start Batch Translation", use_container_width=True):
                     if mode == "SQS Queue (large batches)":
@@ -347,43 +319,40 @@ with tab2:
                             {"text": row["text"], "source_lang": src_code, "target_lang": tgt_code, "row_id": i}
                             for i, row in df.iterrows()
                         ]
-                        with st.spinner(f"Sending {len(messages)} jobs to SQS…"):
+                        with st.spinner(f"Sending {len(messages)} jobs to SQS..."):
                             try:
                                 send_to_sqs(messages)
-                                st.success(f"✅ {len(messages)} jobs sent to SQS queue! Your Lambda will process them asynchronously.")
+                                st.success(f"✅ {len(messages)} jobs sent to SQS queue!")
                             except Exception as e:
                                 st.error(f"SQS error: {e}")
                     else:
                         results = []
-                        progress = st.progress(0, text="Translating…")
+                        progress = st.progress(0, text="Translating...")
                         for i, row in df.iterrows():
                             translated, err = translate_text(str(row["text"]), src_code, tgt_code)
                             results.append(translated if not err else f"ERROR: {err}")
-                            progress.progress((i + 1) / len(df), text=f"Translating row {i+1}/{len(df)}…")
-                            time.sleep(0.05)  # gentle rate limiting
-
+                            progress.progress((i + 1) / len(df), text=f"Row {i+1}/{len(df)}...")
+                            time.sleep(0.05)
                         df["translated"] = results
                         progress.empty()
                         st.success("✅ Batch translation complete!")
                         st.dataframe(df, use_container_width=True)
-
-                        csv_out = df.to_csv(index=False).encode("utf-8")
                         st.download_button(
-                            "⬇️ Download Translated CSV", data=csv_out,
+                            "⬇️ Download Translated CSV",
+                            data=df.to_csv(index=False).encode("utf-8"),
                             file_name=f"translated_{uploaded.name}", mime="text/csv"
                         )
 
         elif file_type == "txt":
             lines = [l.strip() for l in uploaded.read().decode("utf-8").splitlines() if l.strip()]
             st.markdown(f"**{len(lines)} lines detected**")
-            st.text_area("Preview", "\n".join(lines[:10]) + ("\n…" if len(lines) > 10 else ""), height=150, disabled=True)
-
+            st.text_area("Preview", "\n".join(lines[:10]) + ("\n..." if len(lines) > 10 else ""), height=150, disabled=True)
             mode_txt = st.radio("Processing mode", ["Direct API", "SQS Queue"], key="txt_mode")
 
             if st.button("⚡ Translate File", use_container_width=True):
                 if mode_txt == "SQS Queue":
                     messages = [{"text": l, "source_lang": src_code, "target_lang": tgt_code} for l in lines]
-                    with st.spinner("Sending to SQS…"):
+                    with st.spinner("Sending to SQS..."):
                         try:
                             send_to_sqs(messages)
                             st.success(f"✅ {len(messages)} lines sent to SQS queue!")
@@ -401,16 +370,16 @@ with tab2:
                     output = "\n".join(translated_lines)
                     st.text_area("Translated Output", output, height=200)
                     st.download_button(
-                        "⬇️ Download Translated TXT", data=output.encode("utf-8"),
+                        "⬇️ Download Translated TXT",
+                        data=output.encode("utf-8"),
                         file_name=f"translated_{uploaded.name}", mime="text/plain"
                     )
 
-# ─── TAB 3: History ───────────────────────────────────────────────────────────
+# ─── TAB 3 ───────────────────────────────────────────────────────────────────
 with tab3:
     if not st.session_state.history:
         st.markdown("<div style='text-align:center; color:#8B8FA8; padding: 3rem;'>No translations yet. Start translating!</div>", unsafe_allow_html=True)
     else:
-        # Download full history
         hist_df = pd.DataFrame(st.session_state.history)
         st.download_button(
             "⬇️ Download History (CSV)",
@@ -421,8 +390,10 @@ with tab3:
         for item in st.session_state.history:
             st.markdown(f"""
             <div class='hist-item'>
-                <div class='hist-meta'>🕘 {item['time']} &nbsp;|&nbsp; <span class='lang-badge'>{item['src']}</span> → <span class='lang-badge'>{item['tgt']}</span></div>
-                <div><b>Original:</b> {item['original'][:120]}{'…' if len(item['original'])>120 else ''}</div>
-                <div style='color:#06D6A0;'><b>Translated:</b> {item['translated'][:120]}{'…' if len(item['translated'])>120 else ''}</div>
+                <div class='hist-meta'>🕘 {item['time']} &nbsp;|&nbsp;
+                <span class='lang-badge'>{item['src']}</span> →
+                <span class='lang-badge'>{item['tgt']}</span></div>
+                <div><b>Original:</b> {item['original'][:120]}{'...' if len(item['original'])>120 else ''}</div>
+                <div style='color:#06D6A0;'><b>Translated:</b> {item['translated'][:120]}{'...' if len(item['translated'])>120 else ''}</div>
             </div>
             """, unsafe_allow_html=True)
