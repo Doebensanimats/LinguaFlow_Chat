@@ -2,7 +2,9 @@ provider "aws" {
   region = var.aws_region
 }
 
-# --- S3 Buckets ---
+# ----------------------------
+# S3 MODULE
+# ----------------------------
 module "s3" {
   source = "./modules/s3"
 
@@ -10,21 +12,30 @@ module "s3" {
   responses_bucket_name = "translation-app-response-2026"
 }
 
-# --- SQS Queue ---
+# ----------------------------
+# SQS MODULE
+# ----------------------------
 module "sqs" {
   source     = "./modules/sqs"
   queue_name = "translation-batch-queue"
 }
 
-# --- IAM Role for Lambda ---
+# ----------------------------
+# IAM MODULE (FIXED)
+# ----------------------------
 module "iam" {
   source = "./modules/iam"
 
   role_name  = "translation-lambda-role"
-  s3_buckets = [module.s3.input_bucket_arn, module.s3.responses_bucket_arn]
+  s3_buckets = [
+    module.s3.input_bucket_arn,
+    module.s3.responses_bucket_arn
+  ]
 }
 
-# --- Lambda Function ---
+# ----------------------------
+# LAMBDA MODULE
+# ----------------------------
 module "lambda" {
   source = "./modules/lambda"
 
@@ -33,11 +44,13 @@ module "lambda" {
   sqs_queue_url   = module.sqs.sqs_queue_url
 }
 
-# --- API Gateway ---
+# ----------------------------
+# API GATEWAY MODULE
+# ----------------------------
 module "apigateway" {
   source = "./modules/apigateway"
 
   region               = var.aws_region
-  lambda_invoke_arn    = module.lambda.lambda_arn          
+  lambda_invoke_arn    = module.lambda.lambda_arn
   lambda_function_name = module.lambda.function_name
 }
